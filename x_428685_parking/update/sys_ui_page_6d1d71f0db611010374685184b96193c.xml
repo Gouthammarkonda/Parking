@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script><![CDATA[function getParkingDetails(){
+	var user_id = gel('user_id').value;
+	var ga = new GlideAjax('ParkingUtils');
+	ga.addParam('sysparm_name','logOutParking');
+	ga.addParam('sysparm_user',user_id);
+	ga.getXML(parkingCallback);
+}
+function parkingCallback(response){
+	var answer = response.responseXML.documentElement.getAttribute("answer");
+	var obj = JSON.parse(answer);
+	if(obj.slot == ''){
+		gel('error').innerHTML = obj.msg; 
+		gel('slot').innerHTML = '';
+		gel('output').innerHTML = '';
+	}else{
+		gel('error').innerHTML = ''; 
+		gel('slot').innerHTML = obj.slot;
+		gel('output').innerHTML = "Thank you! Name: "+obj.name+"<br>Entry Time: "+obj.entry_time+"<br>Exit Time: "+obj.exit_time+"<br>Total Duration: "+obj.duration+"<br>Vehicle Number: "+obj.vehicle_number;
+	}
+		
+}]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint>x_428685_parking_parking out.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-12">
+				<div class="jumbotron" style="background:#dddddd;">
+					<h1 class="text-center">Vehicle Parking</h1>	
+				  <h2 class="display-4">Thank you Visit Again</h2>
+					<h2 class="display-4">Parking Out</h2>
+				  <p class="lead">Please swipe your card</p>
+				  <form class="form-inline">
+					  <div class="input-group mb-2 mr-sm-2">
+						<g:ui_reference name="user_id" class="form-control" placeholder="Username" table="x_428685_parking_users" query="active=true" show_popup="true" show_lookup="true" onChange="getParkingDetails()"/>
+					  </div>
+					  
+					</form>
+					<hr class="my-4"></hr>
+					<h2 id="error" style="color:#ff0000;"></h2>
+					<h1 id="slot"></h1>
+				    <p id="output">
+				    
+					</p>
+				  
+				</div>
+			</div>
+		</div>
+	</div>
+	
+  
+</j:jelly>]]></html>
+        <name>parking out</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-06-19 13:46:57</sys_created_on>
+        <sys_id>6d1d71f0db611010374685184b96193c</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>parking out</sys_name>
+        <sys_package display_value="Parking" source="x_428685_parking">b7671523db111010374685184b961903</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Parking">b7671523db111010374685184b961903</sys_scope>
+        <sys_update_name>sys_ui_page_6d1d71f0db611010374685184b96193c</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-06-19 14:15:57</sys_updated_on>
+    </sys_ui_page>
+</record_update>

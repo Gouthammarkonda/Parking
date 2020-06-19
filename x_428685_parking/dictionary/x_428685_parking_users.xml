@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Users" max_length="40" name="x_428685_parking_users" sizeclass="2" type="collection">
+        <element default="true" label="Active" max_length="40" name="active" type="boolean"/>
+        <element label="Email Id" max_length="150" name="email_id" type="string"/>
+        <element label="Is VIP" max_length="40" name="is_vip" type="boolean"/>
+        <element label="Is Visitor" max_length="40" name="is_visitor" type="boolean"/>
+        <element label="Mobile number" max_length="20" name="mobile_number" type="string"/>
+        <element display="true" label="Name" max_length="150" name="name" type="string"/>
+        <element label="User ID" max_length="32" name="user_id" reference="sys_user" type="reference"/>
+        <element label="Vehicle Number" max_length="40" name="vehicle_number" type="string"/>
+        <index name="index">
+            <element name="user_id"/>
+        </index>
+    </element>
+</database>

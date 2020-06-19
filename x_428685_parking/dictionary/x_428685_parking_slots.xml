@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Slots" max_length="40" name="x_428685_parking_slots" sizeclass="18" type="collection">
+        <element label="Counter" max_length="40" name="counter" read_only="true" type="string"/>
+        <element label="Is Allotted" max_length="40" name="is_allotted" read_only="true" type="boolean"/>
+        <element display="true" label="Number" max_length="50" name="number" read_only="true" type="string"/>
+        <element choice="1" label="Type" max_length="40" name="type" type="choice">
+            <choice>
+                <element inactive_on_update="false" label="VIP" sequence="100" value="vip"/>
+                <element inactive_on_update="false" label="Employee" sequence="200" value="employee"/>
+                <element inactive_on_update="false" label="Visitor" sequence="300" value="visitor"/>
+            </choice>
+        </element>
+    </element>
+</database>

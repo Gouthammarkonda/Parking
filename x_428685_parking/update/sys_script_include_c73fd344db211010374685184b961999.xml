@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_428685_parking.ParkingUtils</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>ParkingUtils</name>
+        <script><![CDATA[var ParkingUtils = Class.create();
+ParkingUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+
+	getParkingSlot : function(){
+		var userId = this.getParameter("sysparm_user");
+		var userInfo = this.getUserData(userId);
+		var userParkingStatus = this.isUserVehicleIn(userId);
+		var obj = {};
+		if(userParkingStatus){
+			obj = {};
+			obj.name = userInfo.name;
+			obj.msg = "Hey! you already parked your car inside";
+			obj.slot = "";
+			obj.entry_time = "";
+			obj.vehicle_number = "";
+
+		}else{
+			var slot = this.getSlot(userInfo.user_type);
+			if(slot != ""){
+				this.loginParking(userId,String(slot.sys_id));
+				this.setSlotAllocation(slot,true);
+				obj = {};
+				obj.msg = "";
+				obj.name = userInfo.name;
+				obj.slot = String(slot.number);
+				obj.entry_time = String(new GlideDateTime());
+				obj.vehicle_number = userInfo.vehicle_number;
+
+			}else{
+				obj = {};
+				obj.name = userInfo.name;
+				obj.msg = "Hey! Sorry... no parking slot is available";
+				obj.slot = "";
+				obj.entry_time = "";
+				obj.vehicle_number = "";
+			}
+		}
+		return JSON.stringify(obj);
+
+	},
+
+	logOutParking : function(){
+		var userId = this.getParameter("sysparm_user");
+		var userInfo = this.getUserData(userId);
+		var logOutRes = this.logOutUserVehicle(userId);
+		if(gs.nil(logOutRes)){
+			var obj = {};
+			obj.name = userInfo.name;
+			obj.msg = "Hey! you have not parked any car / already taken out";
+			obj.slot = "";
+			obj.entry_time = "";
+			obj.exit_time = "";
+			obj.duration = "";
+			obj.vehicle_number = "";
+			
+			return JSON.stringify(obj);
+		}else{
+			return JSON.stringify(logOutRes);
+		}
+	},
+
+	logOutUserVehicle : function(userId){
+
+		if(!gs.nil(userId)){
+			var logGr = new GlideRecord('x_428685_parking_log');
+			logGr.addQuery('user',String(userId));
+			logGr.orderByDesc('sys_created_on');
+			logGr.addNullQuery('log_out_time');
+			logGr.setLimit(1);
+			logGr.query();
+			if(logGr.next()){
+				var obj = {};
+				var logoutTime = new GlideDateTime();
+				var loginTime = new GlideDateTime(String(logGr.log_in_time));
+				var dur = GlideDateTime.subtract(loginTime, logoutTime); //the difference between gdt1 and gdt2
+				var totalDuration = dur.getDisplayValue();
+				logGr.log_out_time = logoutTime;
+				logGr.duration = totalDuration;
+				var slotGr = logGr.parking_slot.getRefRecord();
+				this.setSlotAllocation(slotGr,false);
+				logGr.update();
+
+				obj.name = logGr.user.getDisplayValue();
+				obj.msg = "";
+				obj.slot = logGr.parking_slot.getDisplayValue();
+				obj.entry_time = String(loginTime);
+				obj.exit_time = String(logoutTime);
+				obj.duration = totalDuration;
+				obj.vehicle_number = String(logGr.user.vehicle_number);
+				return obj;
+			}
+		}
+		return;
+	},
+
+	setSlotAllocation : function(slotGr,boolVal){
+		if(slotGr.isValidRecord()){
+			slotGr.is_allotted = boolVal;
+			slotGr.update();
+			gs.info("parking slot allocated");
+		}
+	},
+
+	loginParking : function(userId,slotId){
+		var logGr = new GlideRecord('x_428685_parking_log');
+		logGr.initialize();
+		logGr.user = userId;
+		logGr.parking_slot = slotId;
+		logGr.log_in_time = new GlideDateTime();
+		var logSysId = logGr.insert();
+		gs.info("user parked car successfully : "+logSysId);
+	},
+
+	getSlot : function(userType){
+		if(!gs.nil(userType)){
+			if(userType == 'vip'){
+				var vipSlot = this.getAvailableSlot(userType);
+				if(gs.nil(vipSlot)){
+					vipSlot = this.getAvailableSlot("employee");
+					if(gs.nil(vipSlot)){
+						vipSlot = this.getAvailableSlot("visitor");
+						if(gs.nil(vipSlot)){
+							vipSlot = "";
+						}
+					}
+				}
+				return vipSlot;
+			}else if(userType == 'employee'){
+				var empSlot = this.getAvailableSlot(userType);
+				if(gs.nil(empSlot)){
+					empSlot = this.getAvailableSlot("visitor");
+					if(gs.nil(empSlot)){
+						empSlot = "";
+					}
+				}
+				return empSlot;
+			}else{
+				var visitorSlot = this.getAvailableSlot(userType);
+				if(gs.nil(visitorSlot)){
+					visitorSlot = "";
+				}
+				return visitorSlot;
+			}
+		}
+		return "";
+	},
+
+	getAvailableSlot : function(userType){
+		var slotGr = new GlideRecord('x_428685_parking_slots');
+		slotGr.addQuery('type',userType);
+		slotGr.orderBy('sys_updated_on');
+		slotGr.addQuery('is_allotted',false);
+		slotGr.setLimit(1);
+		slotGr.query();
+		if(slotGr.next()){
+			return slotGr;
+		}
+		return;
+
+	},
+
+	isUserVehicleIn : function(userId){
+		if(!gs.nil(userId)){
+			var grLog = new GlideRecord('x_428685_parking_log');
+			grLog.addQuery('user',userId);
+			grLog.orderByDesc('sys_created_on');
+			grLog.setLimit(1);
+			grLog.query();
+			if(grLog.next()){
+				if(gs.nil(String(grLog.log_out_time))){
+					return true;
+				}
+			}
+		}
+		return false;
+	},
+
+	getUserData : function(userId){
+		if(!gs.nil(userId)){
+			var userGr = new GlideRecord('x_428685_parking_users');
+			if(userGr.get(userId)){
+				return {
+					name : String(userGr.name),
+					vehicle_number : String(userGr.vehicle_number),
+					user_type : this.getUserType(userGr)
+
+				};
+
+			}
+		}
+		return;
+	},
+
+	getUserType : function(userGr){
+		var userType = "visitor";
+
+		if(userGr.isValidRecord()){
+			if(userGr.is_vip){
+				userType = "vip";
+			}else if(!userGr.is_vip && !userGr.is_visitor){
+				userType = "employee";
+			}else{
+				userType = "visitor";
+			}
+		}
+		return userType;
+	},
+
+
+	type: 'ParkingUtils'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-06-17 14:13:47</sys_created_on>
+        <sys_id>c73fd344db211010374685184b961999</sys_id>
+        <sys_mod_count>4</sys_mod_count>
+        <sys_name>ParkingUtils</sys_name>
+        <sys_package display_value="Parking" source="x_428685_parking">b7671523db111010374685184b961903</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="Parking">b7671523db111010374685184b961903</sys_scope>
+        <sys_update_name>sys_script_include_c73fd344db211010374685184b961999</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-06-19 14:14:16</sys_updated_on>
+    </sys_script_include>
+</record_update>

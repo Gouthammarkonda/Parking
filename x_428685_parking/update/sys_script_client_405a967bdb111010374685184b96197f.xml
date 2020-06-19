@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_script_client">
+    <sys_script_client action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <applies_extended>false</applies_extended>
+        <condition/>
+        <description/>
+        <field>is_visitor</field>
+        <global>true</global>
+        <isolate_script>true</isolate_script>
+        <messages/>
+        <name>clear fields on is visitor  change</name>
+        <order/>
+        <script><![CDATA[function onChange(control, oldValue, newValue, isLoading, isTemplate) {
+   if (newValue === '') {
+      return;
+   }
+	if(String(newValue) == "true"){
+		g_form.setMandatory('user_id',false);
+		g_form.setDisplay('user_id',false);
+		g_form.setReadOnly('name',false);
+		g_form.setReadOnly('email_id',false);
+		g_form.setReadOnly('mobile_number',false);
+		g_form.setMandatory('name',true);
+		g_form.setMandatory('mobile_number',true);
+		g_form.setMandatory('vehicle_number',true);
+		g_form.setValue('user_id',"");
+		g_form.setValue('name',"");
+		g_form.setValue('email_id',"");
+		g_form.setValue('mobile_number',"");
+		g_form.setValue('vehicle_number',"");
+		g_form.setValue('is_vip',false);
+		
+	}else{
+		g_form.setDisplay('user_id',true);
+		g_form.setMandatory('user_id',true);
+		g_form.setMandatory('name',false);
+		g_form.setMandatory('mobile_number',false);
+		g_form.setMandatory('vehicle_number',true);
+		g_form.setReadOnly('name',true);
+		g_form.setReadOnly('email_id',true);
+		g_form.setReadOnly('mobile_number',true);
+		
+		
+		g_form.setValue('name',"");
+		g_form.setValue('email_id',"");
+		g_form.setValue('mobile_number',"");
+		g_form.setValue('vehicle_number',"");
+		
+		
+	}
+	
+
+   //Type appropriate comment here, and begin script below
+   
+}]]></script>
+        <sys_class_name>sys_script_client</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2020-06-16 13:30:45</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>405a967bdb111010374685184b96197f</sys_id>
+        <sys_mod_count>11</sys_mod_count>
+        <sys_name>clear fields on is visitor  change</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="Parking" source="x_428685_parking">b7671523db111010374685184b961903</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Parking">b7671523db111010374685184b961903</sys_scope>
+        <sys_update_name>sys_script_client_405a967bdb111010374685184b96197f</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2020-06-16 13:45:20</sys_updated_on>
+        <table>x_428685_parking_users</table>
+        <type>onChange</type>
+        <ui_type>0</ui_type>
+        <view/>
+    </sys_script_client>
+</record_update>
